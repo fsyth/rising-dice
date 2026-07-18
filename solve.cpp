@@ -54,8 +54,8 @@ void exploreTurnNode(TurnNode& turn)
 			nextTurn.state.choices.set(choice, false).set(Bank, true);
 
 			// Optional rule: allow d20 if all five other dice have been rolled
-			//if (turn.state.rollNo == 4)
-			//	nextTurn.state.choices.set(D20, true);
+			if (turn.state.rollNo == 4)
+				nextTurn.state.choices.set(D20);
 
 			// Can make further choices, so explore recursively
 			exploreTurnNode(nextTurn);

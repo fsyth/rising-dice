@@ -10,7 +10,7 @@ struct TurnNode
 	Choice bestChoiceNext = Bank;
 	double expectedScore = 0.0; // mean of outcomes
 	TurnState state;
-	std::map<Choice, std::map<int, TurnNode>> next;
+	std::map<Choice, std::map<RollResult, TurnNode>> next;
 };
 
 const TurnNode& solve();

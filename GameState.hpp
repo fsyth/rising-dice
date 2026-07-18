@@ -9,7 +9,7 @@ struct TurnState
 {
 	Available choices{ initialChoices };
 	Choice prevChoice = Bank;
-	int prevRoll = 0;
+	RollResult prevRoll = 0;
 	int turnScore = 0;
 	int rollNo = 0;
 };

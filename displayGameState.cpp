@@ -26,8 +26,8 @@ void displayGameState(const GameState& state)
 
 	const char* const turnColor = state.rollNo == 0 || state.prevChoice == Bank
 		? Color::Reset
-		: (state.turnScore > 0 
-			? Color::Green 
+		: (state.turnScore > 0
+			? Color::Green
 			: Color::Red);
 
 	const char* const bankColor = state.rollNo != 0 && state.prevChoice == Bank
@@ -46,6 +46,7 @@ void displayGameState(const GameState& state)
 		if (state.choices.test(D8))   std::cout << Color::Cyan << "(8)"  << Color::Reset << " d8   ";
 		if (state.choices.test(D10))  std::cout << Color::Cyan << "(10)" << Color::Reset << " d10   ";
 		if (state.choices.test(D12))  std::cout << Color::Cyan << "(12)" << Color::Reset << " d12   ";
+		if (state.choices.test(D20))  std::cout << Color::Cyan << "(20)" << Color::Reset << " d20   ";
 		if (state.choices.test(Bank)) std::cout << Color::Cyan << "(0)"  << Color::Reset << " Bank";
 		std::cout << Color::Reset << "\n";
 	}

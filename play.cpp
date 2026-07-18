@@ -7,7 +7,7 @@
 #include <cassert>
 #include <random>
 
-int roll(int die)
+RollResult roll(Choice die)
 {
 	return 1 + (std::rand() % die);
 }
@@ -20,6 +20,12 @@ void removeDumbChoices(GameState& state)
 	if (state.prevRoll > D8)  state.choices.set(D8,  false);
 	if (state.prevRoll > D10) state.choices.set(D10, false);
 	if (state.prevRoll > D12) state.choices.set(D12, false);
+}
+
+void d20Rule(GameState& state)
+{
+	// Optional rule: allow d20 if all five other dice have been rolled
+	if (state.rollNo == 4) state.choices.set(D20);
 }
 
 int play(Strategy choose, GameStateDisplay display, int winningScore)
@@ -40,7 +46,7 @@ int play(Strategy choose, GameStateDisplay display, int winningScore)
 		assert(choice != Bank && "Invalid strategy. Cannot bank 0 score for turn.");
 
 		state.prevChoice = choice;
-		int r = roll(choice);
+		RollResult r = roll(choice);
 
 		state.turnScore = r;
 		state.prevRoll = r;
@@ -53,6 +59,7 @@ int play(Strategy choose, GameStateDisplay display, int winningScore)
 			++state.rollNo;
 			display(state);
 
+			// Auto-bank if no other choice
 			choice = state.choices.count() > 1
 				? choose(state)
 				: Bank;
@@ -89,6 +96,7 @@ int play(Strategy choose, GameStateDisplay display, int winningScore)
 			state.turnScore += r;
 			state.prevRoll = r;
 			state.choices.set(choice, false);
+			d20Rule(state);
 			removeDumbChoices(state);
 		}
 

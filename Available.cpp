@@ -9,7 +9,7 @@ std::vector<Choice> toVector(const Available& choices)
 	if (choices.test(D8))   v.push_back(D8);
 	if (choices.test(D10))  v.push_back(D10);
 	if (choices.test(D12))  v.push_back(D12);
-	//if (choices.test(D20))  v.push_back(D20);
+	if (choices.test(D20))  v.push_back(D20);
 	if (choices.test(Bank)) v.push_back(Bank);
 	return v;
 }

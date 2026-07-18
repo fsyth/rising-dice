@@ -9,12 +9,11 @@ Choice playerStrategy(const GameState& state)
 	while (true)
 	{
 		std::cout << Color::Cyan << "Choice > ";
-		int c;
+		unsigned int c;
 		std::cin >> c;
 		std::cout << Color::Reset;
 
-		if ((c == Bank || c == D4 || c == D6 || c == D8 || c == D10 || c == D12) &&
-			state.choices.test(c))
+		if (c < ChoiceMax && state.choices.test(c))
 		{
 			return static_cast<Choice>(c);
 		}
