@@ -21,6 +21,22 @@ RollResult roll(Choice die);
 // Returns the final turn number reached.
 int play(Strategy choose, GameStateDisplay display, int winningScore = 100);
 
+// Play a single turn of a game. The strategy provided will be asked for
+// choices until the turn ends in a bank or bust.
+void playTurn(GameState& state, Strategy choose, GameStateDisplay display);
+
+// Update the game state to begin a new turn.
+void beginTurn(GameState& state);
+
+// Update the turn state with a given choice of die and rolled result.
+void playTurnRoll(TurnState& state, Choice choice, RollResult rolled);
+
+// Update the turn state with a choice of Bank.
+void playTurnBank(TurnState& state);
+
+// Update the game state with the final turn state (bank or bust).
+void endTurn(GameState& state);
+
 // Test a strategy. This plays a game, but display is disabled and the rng is
 // seeded at the start.
 // Returns the final turn number reached.

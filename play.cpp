@@ -12,102 +12,104 @@ RollResult roll(Choice die)
 	return 1 + (std::rand() % die);
 }
 
-void removeDumbChoices(GameState& state)
-{
-	// Optional, but can unset choices that are guaranteed to bust
-	if (state.prevRoll > D4)  state.choices.set(D4,  false);
-	if (state.prevRoll > D6)  state.choices.set(D6,  false);
-	if (state.prevRoll > D8)  state.choices.set(D8,  false);
-	if (state.prevRoll > D10) state.choices.set(D10, false);
-	if (state.prevRoll > D12) state.choices.set(D12, false);
-}
-
-void d20Rule(GameState& state)
+void d20Rule(TurnState& state)
 {
 	// Optional rule: allow d20 if all five other dice have been rolled
-	if (state.rollNo == 4) state.choices.set(D20);
+	if (state.rollNo == 5)
+		state.choices.set(D20);
+}
+
+void removeDumbChoices(TurnState& state)
+{
+	// Optional, but can unset choices that are guaranteed to bust
+	state.choices >>= state.prevRoll;
+	state.choices <<= state.prevRoll;
 }
 
 int play(Strategy choose, GameStateDisplay display, int winningScore)
 {
-	// Setup
 	GameState state;
 
-	// Begin game
 	while (state.gameScore < winningScore)
-	{
-		// Begin turn
-		state.choices = initialChoices;
-		display(state);
-
-		Choice choice = choose(state);
-
-		// Indicates a logic error in the strategy passed in.
-		assert(choice != Bank && "Invalid strategy. Cannot bank 0 score for turn.");
-
-		state.prevChoice = choice;
-		RollResult r = roll(choice);
-
-		state.turnScore = r;
-		state.prevRoll = r;
-		state.choices.set(choice, false);
-		state.choices.set(Bank);
-		removeDumbChoices(state);
-
-		while (true)
-		{
-			++state.rollNo;
-			display(state);
-
-			// Auto-bank if no other choice
-			choice = state.choices.count() > 1
-				? choose(state)
-				: Bank;
-
-			// Indicates a logic error in the strategy passed in.
-			assert(state.choices.test(choice) && "Invalid strategy. Choice unavailable.");
-
-			state.prevChoice = choice;
-
-			if (choice == Bank)
-			{
-				// Bank
-				state.gameScore += state.turnScore;
-				state.choices.reset();
-				++state.rollNo;
-				display(state);
-				break;
-			}
-
-			r = roll(choice);
-
-			if (r < state.prevRoll)
-			{
-				// Bust
-				state.turnScore = 0;
-				state.prevRoll = r;
-				state.choices.reset();
-				++state.rollNo;
-				display(state);
-				break;
-			}
-
-			// Safe
-			state.turnScore += r;
-			state.prevRoll = r;
-			state.choices.set(choice, false);
-			d20Rule(state);
-			removeDumbChoices(state);
-		}
-
-		// End turn
-		state.turnScore = 0;
-		state.prevRoll = 0;
-		state.rollNo = 0;
-		++state.turnNo;
-	}
+		playTurn(state, choose, display);
 
 	return state.turnNo;
+}
+
+void playTurn(GameState& state, Strategy choose, GameStateDisplay display)
+{
+	beginTurn(state);
+
+	while (state.choices.any())
+	{
+		display(state);
+		Choice choice = choose(state);
+
+		if (choice == Bank)
+		{
+			playTurnBank(state);
+			break;
+		}
+
+		RollResult rolled = roll(choice);
+		playTurnRoll(state, choice, rolled);
+	}
+
+	endTurn(state);
+	display(state);
+}
+
+void beginTurn(GameState& state)
+{
+	// Reset turn state for next turn
+	state.choices = initialChoices;
+	state.turnScore = 0;
+	state.prevRoll = 0;
+	state.rollNo = 0;
+	++state.turnNo;
+}
+
+void playTurnRoll(TurnState& state, Choice choice, RollResult rolled)
+{
+	// Indicates a logic error in the strategy passed in.
+	assert(state.choices.test(choice) && "Invalid strategy. Choice unavailable.");
+
+	++state.rollNo;
+	state.prevChoice = choice;
+
+	if (rolled < state.prevRoll)
+	{
+		// Bust
+		state.prevRoll = rolled;
+		state.turnScore = 0;
+		state.choices.reset();
+		return;
+	}
+
+	// Safe
+	state.prevRoll = rolled;
+	state.turnScore += rolled;
+	d20Rule(state);
+	removeDumbChoices(state);
+	state.choices.set(choice, false);
+	state.choices.set(Bank);
+}
+
+void playTurnBank(TurnState& state)
+{
+	// Indicates a logic error in the strategy passed in.
+	assert(state.turnScore > 0 && "Invalid strategy. Cannot bank 0 score for turn.");
+
+	state.prevChoice = Bank;
+	state.choices.reset();
+}
+
+void endTurn(GameState& state)
+{
+	// Either we banked with non-zero turn score, or we bust with zero turn score.
+	assert(((state.prevChoice == Bank) != (state.turnScore == 0)) && "Invalid state. Must bank or bust before ending turn.");
+
+	state.gameScore += state.turnScore;
 }
 
 void noDisplay(const GameState& state)

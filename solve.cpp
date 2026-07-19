@@ -1,5 +1,7 @@
 #include "solve.hpp"
 
+#include "play.hpp"
+
 #include <cassert>
 #include <vector>
 
@@ -15,52 +17,35 @@ void exploreTurnNode(TurnNode& turn)
 		if (choice == Bank)
 		{
 			TurnNode& nextTurn = turn.next[choice][0];
-			nextTurn.state.prevChoice = choice;
-			nextTurn.state.prevRoll = 0;
-			nextTurn.state.rollNo = turn.state.rollNo + 1;
-			nextTurn.state.turnScore = turn.state.turnScore;
-			nextTurn.state.choices.reset();
+			nextTurn.state = turn.state;
+			playTurnBank(nextTurn.state);
 
-			// No rolls possible, expected score known
+			// No further rolls possible, expected score known
 			nextTurn.expectedScore = turn.state.turnScore;
 			continue;
 		}
 
 		// Skip choice if it would always bust
-		if (choice < turn.state.prevRoll) continue;
+		if (choice < turn.state.prevRoll)
+			continue;
 
 		// Create turn nodes for all roll results
 		for (int roll = 1; roll <= choice; ++roll)
 		{
 			TurnNode& nextTurn = turn.next[choice][roll];
-			nextTurn.state.prevChoice = choice;
-			nextTurn.state.prevRoll = roll;
-			nextTurn.state.rollNo = turn.state.rollNo + 1;
+			nextTurn.state = turn.state;
+			playTurnRoll(nextTurn.state, choice, roll);
 
-			if (roll < turn.state.prevRoll)
+			if (nextTurn.state.choices.none())
 			{
-				// Bust
-				nextTurn.state.turnScore = 0;
-				nextTurn.state.choices.reset();
-
-				// No further choices, expected score known 0
+				// Bust. No further choices, expected score known 0
 				nextTurn.expectedScore = 0.0;
 				continue;
 			}
 
-			// Safe
-			nextTurn.state.turnScore = turn.state.turnScore + roll;
-			nextTurn.state.choices = turn.state.choices;
-			nextTurn.state.choices.set(choice, false).set(Bank, true);
-
-			// Optional rule: allow d20 if all five other dice have been rolled
-			if (turn.state.rollNo == 4)
-				nextTurn.state.choices.set(D20);
-
-			// Can make further choices, so explore recursively
+			// Safe. Can make further choices, so explore recursively
 			exploreTurnNode(nextTurn);
 		}
-
 	}
 
 	// Average possible rolls for each choice (excluding bank)
@@ -103,7 +88,8 @@ const TurnNode& solve()
 	static TurnNode root;
 
 	// Initialize root by exploring exhaustively
-	if (root.next.empty()) exploreTurnNode(root);
+	if (root.next.empty())
+		exploreTurnNode(root);
 
 	return root;
 }
