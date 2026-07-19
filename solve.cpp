@@ -27,7 +27,8 @@ void exploreTurnNode(TurnNode& turn)
 		}
 
 		// Skip choice if it would always bust
-		if (choice < turn.state.prevRoll) continue;
+		if (choice < turn.state.prevRoll)
+			continue;
 
 		// Create turn nodes for all roll results
 		for (int roll = 1; roll <= choice; ++roll)
@@ -54,7 +55,7 @@ void exploreTurnNode(TurnNode& turn)
 			nextTurn.state.choices.set(choice, false).set(Bank, true);
 
 			// Optional rule: allow d20 if all five other dice have been rolled
-			if (turn.state.rollNo == 4)
+			if (nextTurn.state.rollNo == 5)
 				nextTurn.state.choices.set(D20);
 
 			// Can make further choices, so explore recursively
