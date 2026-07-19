@@ -1,6 +1,7 @@
+#include "Color.hpp"
+#include "displayGameState.hpp"
 #include "play.hpp"
 #include "playerStrategy.hpp"
-#include "displayGameState.hpp"
 
 #include <iostream>
 
@@ -14,11 +15,14 @@ void playAsHuman()
 		play(playerStrategy, displayGameState);
 
 		std::cout
-			<< "\nWinning score reached!\n"
-			<< "Play Again?    (y) Yes   (n) No\n"
-			<< "Choice > ";
+			<< Color::Green << "\nWinning score reached!\n" << Color::Reset
+			<< "Play Again?    "
+			<< Color::Cyan << "(y)" << Color::Reset << " Yes   "
+			<< Color::Cyan << "(n)" << Color::Reset << " No\n"
+			<< Color::Cyan << "Choice > ";
 
 		std::cin >> playAgain;
+		std::cout << Color::Reset;
 	} while (playAgain == 'y');
 }
 
