@@ -7,7 +7,7 @@
 
 void displayGameState(const GameState& state)
 {
-	std::cout << Color::Blue << "\n== Turn " << state.turnNo + 1;
+	std::cout << Color::Blue << "\n== Turn " << state.turnNo;
 	if (state.rollNo > 0)
 	{
 		if (state.prevChoice == Bank)
